@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import type { Survey, SurveyResponse, DimensionAnswer, ParticipantInfo } from '../types';
+import type { Survey, SurveyResponse, DimensionAnswer, ParticipantInfo, AdditionalQuestions } from '../types';
 import { submitToGoogleSheet, fetchFromGoogleSheet } from '../utils/googleSheets';
 
 interface SurveyContextType {
@@ -8,7 +8,7 @@ interface SurveyContextType {
   isLoading: boolean;
   isSubmitting: boolean;
   error: string | null;
-  addResponse: (response: { participantInfo: ParticipantInfo; answers: DimensionAnswer[] }) => Promise<boolean>;
+  addResponse: (response: { participantInfo: ParticipantInfo; answers: DimensionAnswer[]; additionalQuestions?: AdditionalQuestions }) => Promise<boolean>;
   refreshResponses: () => Promise<void>;
 }
 
@@ -88,14 +88,15 @@ export function SurveyProvider({ children }: { children: ReactNode }) {
   }, [refreshResponses]);
 
   // Submit response to Google Sheets
-  const addResponse = useCallback(async (response: { participantInfo: ParticipantInfo; answers: DimensionAnswer[] }): Promise<boolean> => {
+  const addResponse = useCallback(async (response: { participantInfo: ParticipantInfo; answers: DimensionAnswer[]; additionalQuestions?: AdditionalQuestions }): Promise<boolean> => {
     setIsSubmitting(true);
     setError(null);
     
     try {
       const result = await submitToGoogleSheet({
         participantInfo: response.participantInfo,
-        answers: response.answers
+        answers: response.answers,
+        additionalQuestions: response.additionalQuestions
       });
       
       if (result.success) {
