@@ -40,7 +40,7 @@ export const OCAI_QUESTIONS: OCAIQuestion[] = [
         key: 'D',
         cultureType: 'Hierarchy',
         cultureTypeVi: 'Thứ bậc - Kiểm soát',
-        description: 'Tổ chức là một nơi làm việc rất chính thức và có cấu trúc. Quy trình quản lý quy định những gì mọi người làm.'
+        description: 'Tổ chức là một nơi làm việc rất nghiêm túc. Quy trình quản lý quy định những gì mọi người làm.'
       }
     ]
   },
