@@ -65,6 +65,7 @@ export function SurveyProvider({ children }: { children: ReactNode }) {
             scoreC_preferred: a.scoreC_preferred,
             scoreD_preferred: a.scoreD_preferred
           })),
+          additionalQuestions: r.additionalQuestions,
           submittedAt: new Date(r.submittedAt)
         }));
         

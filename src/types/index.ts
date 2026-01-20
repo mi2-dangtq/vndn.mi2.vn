@@ -34,6 +34,7 @@ export interface SurveyResponse {
   surveyId: string;
   participantInfo: ParticipantInfo;
   answers: DimensionAnswer[];
+  additionalQuestions?: AdditionalQuestions;
   submittedAt: Date;
 }
 
