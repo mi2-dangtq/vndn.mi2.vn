@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useSurvey } from '../hooks/useSurvey';
-import type { ParticipantInfo, DimensionAnswer, AdditionalQuestions } from '../types';
+import type { ParticipantInfo, DimensionAnswer } from '../types';
 import { DEPARTMENTS, POSITIONS, SENIORITIES, GENDERS, AGE_GROUPS } from '../types';
 import { OCAI_QUESTIONS } from '../data/ocaiQuestions';
 import { getDepartments } from '../utils/bitrix';
 import './TakeSurveyPage.css';
 
-type Step = 'info' | 'questions' | 'additional' | 'complete';
+type Step = 'info' | 'questions' | 'complete';
 
 export default function TakeSurveyPage() {
   const { survey, addResponse, isSubmitting } = useSurvey();
@@ -37,12 +37,6 @@ export default function TakeSurveyPage() {
     }))
   );
 
-  // Câu hỏi bổ sung - Giá trị & Tầm nhìn Mi2
-  const [additionalQuestions, setAdditionalQuestions] = useState<AdditionalQuestions>({
-    whyMi2Exists: '',
-    mi2Future: '',
-    mi2Values: ''
-  });
 
   // Dynamic departments from Bitrix24
   const [departments, setDepartments] = useState<string[]>(DEPARTMENTS);
@@ -112,12 +106,12 @@ export default function TakeSurveyPage() {
            getCurrentTotal(questionIndex, 'preferred') === 100;
   };
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = async () => {
     if (currentQuestion < OCAI_QUESTIONS.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
-      // Chuyển sang phần câu hỏi bổ sung thay vì submit ngay
-      setStep('additional');
+      // Submit trực tiếp khi hoàn thành câu hỏi cuối
+      await submitSurvey();
     }
   };
 
@@ -130,116 +124,15 @@ export default function TakeSurveyPage() {
   const submitSurvey = async () => {
     const success = await addResponse({
       participantInfo,
-      answers,
-      additionalQuestions
+      answers
     });
     if (success) {
       setStep('complete');
     }
   };
 
-  // Quay lại từ phần câu hỏi bổ sung về câu hỏi OCAI cuối
-  const handleBackFromAdditional = () => {
-    setCurrentQuestion(OCAI_QUESTIONS.length - 1);
-    setStep('questions');
-  };
 
-  // Render phần câu hỏi bổ sung
-  if (step === 'additional') {
-    return (
-      <div className="take-survey-page">
-        <div className="question-progress">
-          <div className="progress-info">
-            <span>Câu hỏi bổ sung</span>
-            <span className="progress-dimension">Giá trị & Tầm nhìn Mi2</span>
-          </div>
-          <div className="progress-bar">
-            <div className="progress-fill" style={{ width: '100%' }}></div>
-          </div>
-        </div>
 
-        <div className="question-content additional-questions">
-          <div className="question-header">
-            <h2>💡 Chia sẻ suy nghĩ của bạn</h2>
-            <p className="question-hint">
-              Hãy chia sẻ quan điểm cá nhân của bạn về Mi2. Không có câu trả lời đúng hay sai.
-            </p>
-          </div>
-
-          <div className="additional-question-list">
-            <div className="additional-question-item">
-              <label>
-                <span className="question-number">1.</span>
-                <strong>Vì sao Mi2 tồn tại?</strong>
-              </label>
-              <p className="question-subtext">Bất kỳ lý do gì bạn nghĩ đến</p>
-              <textarea
-                value={additionalQuestions.whyMi2Exists}
-                onChange={(e) => setAdditionalQuestions(prev => ({
-                  ...prev,
-                  whyMi2Exists: e.target.value
-                }))}
-                placeholder="Nhập câu trả lời của bạn..."
-                rows={4}
-              />
-            </div>
-
-            <div className="additional-question-item">
-              <label>
-                <span className="question-number">2.</span>
-                <strong>5-10 năm sau Mi2 sẽ như thế nào?</strong>
-              </label>
-              <p className="question-subtext">Bất kể hình dung về khía cạnh nào</p>
-              <textarea
-                value={additionalQuestions.mi2Future}
-                onChange={(e) => setAdditionalQuestions(prev => ({
-                  ...prev,
-                  mi2Future: e.target.value
-                }))}
-                placeholder="Nhập câu trả lời của bạn..."
-                rows={4}
-              />
-            </div>
-
-            <div className="additional-question-item">
-              <label>
-                <span className="question-number">3.</span>
-                <strong>Nêu 02 giá trị mà bạn nhận thấy rõ nhất ở Mi2 và 01 giá trị theo bạn Mi2 nên tăng cường</strong>
-              </label>
-              <p className="question-subtext">Ví dụ: Sáng tạo, Đoàn kết, Chuyên nghiệp...</p>
-              <textarea
-                value={additionalQuestions.mi2Values}
-                onChange={(e) => setAdditionalQuestions(prev => ({
-                  ...prev,
-                  mi2Values: e.target.value
-                }))}
-                placeholder="Nhập câu trả lời của bạn..."
-                rows={4}
-              />
-            </div>
-          </div>
-
-          <div className="question-actions">
-            <button 
-              type="button" 
-              className="btn btn-secondary"
-              onClick={handleBackFromAdditional}
-            >
-              ← Quay lại
-            </button>
-            <button 
-              type="button" 
-              className="btn btn-primary"
-              onClick={submitSurvey}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? '⏳ Đang gửi...' : 'Hoàn thành khảo sát ✓'}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (step === 'complete') {
     return (

@@ -22,19 +22,11 @@ export interface DimensionAnswer {
   scoreD_preferred: number;
 }
 
-// Câu hỏi bổ sung - Giá trị & Tầm nhìn Mi2
-export interface AdditionalQuestions {
-  whyMi2Exists: string; // Vì sao Mi2 tồn tại?
-  mi2Future: string; // 5-10 năm sau Mi2 sẽ như thế nào?
-  mi2Values: string; // 02 giá trị rõ nhất + 01 giá trị nên tăng cường
-}
-
 export interface SurveyResponse {
   id: string;
   surveyId: string;
   participantInfo: ParticipantInfo;
   answers: DimensionAnswer[];
-  additionalQuestions?: AdditionalQuestions;
   submittedAt: Date;
 }
 

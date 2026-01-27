@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import type { Survey, SurveyResponse, DimensionAnswer, ParticipantInfo, AdditionalQuestions } from '../types';
+import type { Survey, SurveyResponse, DimensionAnswer, ParticipantInfo } from '../types';
 import { submitToGoogleSheet, fetchFromGoogleSheet } from '../utils/googleSheets';
 
 interface SurveyContextType {
@@ -8,7 +8,7 @@ interface SurveyContextType {
   isLoading: boolean;
   isSubmitting: boolean;
   error: string | null;
-  addResponse: (response: { participantInfo: ParticipantInfo; answers: DimensionAnswer[]; additionalQuestions?: AdditionalQuestions }) => Promise<boolean>;
+  addResponse: (response: { participantInfo: ParticipantInfo; answers: DimensionAnswer[] }) => Promise<boolean>;
   refreshResponses: () => Promise<void>;
 }
 
@@ -65,7 +65,6 @@ export function SurveyProvider({ children }: { children: ReactNode }) {
             scoreC_preferred: a.scoreC_preferred,
             scoreD_preferred: a.scoreD_preferred
           })),
-          additionalQuestions: r.additionalQuestions,
           submittedAt: new Date(r.submittedAt)
         }));
         
@@ -89,15 +88,14 @@ export function SurveyProvider({ children }: { children: ReactNode }) {
   }, [refreshResponses]);
 
   // Submit response to Google Sheets
-  const addResponse = useCallback(async (response: { participantInfo: ParticipantInfo; answers: DimensionAnswer[]; additionalQuestions?: AdditionalQuestions }): Promise<boolean> => {
+  const addResponse = useCallback(async (response: { participantInfo: ParticipantInfo; answers: DimensionAnswer[] }): Promise<boolean> => {
     setIsSubmitting(true);
     setError(null);
     
     try {
       const result = await submitToGoogleSheet({
         participantInfo: response.participantInfo,
-        answers: response.answers,
-        additionalQuestions: response.additionalQuestions
+        answers: response.answers
       });
       
       if (result.success) {

@@ -14,7 +14,7 @@ const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD_RESULT || 'admin2024'
 
 export default function SurveyResultPage() {
   const { survey, isLoading, refreshResponses } = useSurvey();
-  const [activeTab, setActiveTab] = useState<'overview' | 'dimensions' | 'segments' | 'rawdata' | 'feedback'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'dimensions' | 'segments' | 'rawdata'>('overview');
   const [isExporting, setIsExporting] = useState<'pdf' | 'excel' | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
   
@@ -288,12 +288,6 @@ export default function SurveyResultPage() {
         >
           📋 Dữ liệu chi tiết
         </button>
-        <button 
-          className={`tab ${activeTab === 'feedback' ? 'active' : ''}`}
-          onClick={() => setActiveTab('feedback')}
-        >
-          💡 Ý kiến bổ sung
-        </button>
       </div>
 
       {/* Tab Content */}
@@ -553,79 +547,6 @@ export default function SurveyResultPage() {
                   <strong>Loại điểm:</strong>
                   <span className="legend-item">HT = Hiện tại (Current)</span>
                   <span className="legend-item">MM = Mong muốn (Preferred)</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'feedback' && (
-          <div className="feedback-content">
-            <div className="feedback-info">
-              <p>💡 Tổng cộng <strong>{survey.responses.filter(r => r.additionalQuestions?.whyMi2Exists || r.additionalQuestions?.mi2Future || r.additionalQuestions?.mi2Values).length}</strong> phản hồi có ý kiến bổ sung</p>
-            </div>
-            
-            <div className="feedback-sections">
-              {/* Vì sao Mi2 tồn tại */}
-              <div className="feedback-section">
-                <h3>🎯 Vì sao Mi2 tồn tại?</h3>
-                <div className="feedback-list">
-                  {survey.responses
-                    .filter(r => r.additionalQuestions?.whyMi2Exists)
-                    .map((response, index) => (
-                      <div key={response.id} className="feedback-item">
-                        <div className="feedback-meta">
-                          <span className="feedback-index">#{index + 1}</span>
-                          <span className="feedback-dept">{response.participantInfo.department}</span>
-                        </div>
-                        <p className="feedback-text">{response.additionalQuestions?.whyMi2Exists}</p>
-                      </div>
-                    ))}
-                  {survey.responses.filter(r => r.additionalQuestions?.whyMi2Exists).length === 0 && (
-                    <p className="no-feedback">Chưa có phản hồi nào</p>
-                  )}
-                </div>
-              </div>
-
-              {/* 5-10 năm sau Mi2 */}
-              <div className="feedback-section">
-                <h3>🔮 5-10 năm sau Mi2 sẽ như thế nào?</h3>
-                <div className="feedback-list">
-                  {survey.responses
-                    .filter(r => r.additionalQuestions?.mi2Future)
-                    .map((response, index) => (
-                      <div key={response.id} className="feedback-item">
-                        <div className="feedback-meta">
-                          <span className="feedback-index">#{index + 1}</span>
-                          <span className="feedback-dept">{response.participantInfo.department}</span>
-                        </div>
-                        <p className="feedback-text">{response.additionalQuestions?.mi2Future}</p>
-                      </div>
-                    ))}
-                  {survey.responses.filter(r => r.additionalQuestions?.mi2Future).length === 0 && (
-                    <p className="no-feedback">Chưa có phản hồi nào</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Giá trị Mi2 */}
-              <div className="feedback-section">
-                <h3>💎 Giá trị rõ nhất ở Mi2 & Giá trị cần tăng cường</h3>
-                <div className="feedback-list">
-                  {survey.responses
-                    .filter(r => r.additionalQuestions?.mi2Values)
-                    .map((response, index) => (
-                      <div key={response.id} className="feedback-item">
-                        <div className="feedback-meta">
-                          <span className="feedback-index">#{index + 1}</span>
-                          <span className="feedback-dept">{response.participantInfo.department}</span>
-                        </div>
-                        <p className="feedback-text">{response.additionalQuestions?.mi2Values}</p>
-                      </div>
-                    ))}
-                  {survey.responses.filter(r => r.additionalQuestions?.mi2Values).length === 0 && (
-                    <p className="no-feedback">Chưa có phản hồi nào</p>
-                  )}
                 </div>
               </div>
             </div>

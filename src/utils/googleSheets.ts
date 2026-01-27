@@ -21,12 +21,6 @@ export interface SurveySubmission {
     scoreC_preferred: number;
     scoreD_preferred: number;
   }[];
-  // Câu hỏi bổ sung - Giá trị & Tầm nhìn Mi2
-  additionalQuestions?: {
-    whyMi2Exists: string;
-    mi2Future: string;
-    mi2Values: string;
-  };
 }
 
 export interface GoogleSheetResponse {
@@ -59,12 +53,6 @@ export interface FetchResponsesResult {
       scoreC_preferred: number;
       scoreD_preferred: number;
     }[];
-    // Câu hỏi bổ sung - Giá trị & Tầm nhìn Mi2
-    additionalQuestions?: {
-      whyMi2Exists: string;
-      mi2Future: string;
-      mi2Values: string;
-    };
   }[];
   error?: string;
 }
