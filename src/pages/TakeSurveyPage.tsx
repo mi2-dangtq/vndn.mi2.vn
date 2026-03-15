@@ -4,6 +4,7 @@ import type { ParticipantInfo, DimensionAnswer } from '../types';
 import { DEPARTMENTS, POSITIONS, SENIORITIES, GENDERS, AGE_GROUPS } from '../types';
 import { OCAI_QUESTIONS } from '../data/ocaiQuestions';
 import { getDepartments } from '../utils/bitrix';
+import { rawScoreToPercentages } from '../utils/calculations';
 import './TakeSurveyPage.css';
 
 type Step = 'info' | 'questions' | 'complete';
@@ -26,14 +27,14 @@ export default function TakeSurveyPage() {
   const [answers, setAnswers] = useState<DimensionAnswer[]>(
     OCAI_QUESTIONS.map((_, index) => ({
       dimensionNumber: index + 1,
-      scoreA_current: 25,
-      scoreB_current: 25,
-      scoreC_current: 25,
-      scoreD_current: 25,
-      scoreA_preferred: 25,
-      scoreB_preferred: 25,
-      scoreC_preferred: 25,
-      scoreD_preferred: 25
+      scoreA_current: 5,
+      scoreB_current: 5,
+      scoreC_current: 5,
+      scoreD_current: 5,
+      scoreA_preferred: 5,
+      scoreB_preferred: 5,
+      scoreC_preferred: 5,
+      scoreD_preferred: 5
     }))
   );
 
@@ -93,17 +94,26 @@ export default function TakeSurveyPage() {
     });
   };
 
-  const getCurrentTotal = (questionIndex: number, type: 'current' | 'preferred'): number => {
+  const getPercentages = (questionIndex: number, type: 'current' | 'preferred') => {
     const answer = answers[questionIndex];
     if (type === 'current') {
-      return answer.scoreA_current + answer.scoreB_current + answer.scoreC_current + answer.scoreD_current;
+      return rawScoreToPercentages(answer.scoreA_current, answer.scoreB_current, answer.scoreC_current, answer.scoreD_current);
     }
-    return answer.scoreA_preferred + answer.scoreB_preferred + answer.scoreC_preferred + answer.scoreD_preferred;
+    return rawScoreToPercentages(answer.scoreA_preferred, answer.scoreB_preferred, answer.scoreC_preferred, answer.scoreD_preferred);
+  };
+
+  const isScoreValid = (value: number): boolean => {
+    return value >= 1 && value <= 10 && Number.isInteger(value);
   };
 
   const isQuestionValid = (questionIndex: number): boolean => {
-    return getCurrentTotal(questionIndex, 'current') === 100 && 
-           getCurrentTotal(questionIndex, 'preferred') === 100;
+    const answer = answers[questionIndex];
+    return (
+      isScoreValid(answer.scoreA_current) && isScoreValid(answer.scoreB_current) &&
+      isScoreValid(answer.scoreC_current) && isScoreValid(answer.scoreD_current) &&
+      isScoreValid(answer.scoreA_preferred) && isScoreValid(answer.scoreB_preferred) &&
+      isScoreValid(answer.scoreC_preferred) && isScoreValid(answer.scoreD_preferred)
+    );
   };
 
   const handleNextQuestion = async () => {
@@ -286,7 +296,7 @@ export default function TakeSurveyPage() {
         <div className="question-header">
           <h2>{question.dimensionNumber}. {question.dimensionName}</h2>
           <p className="question-hint">
-            Phân chia 100 điểm cho 4 lựa chọn bên dưới. Điểm cao = mô tả phù hợp nhất với tổ chức.
+            Chấm điểm từ 1 đến 10 cho mỗi lựa chọn bên dưới. Điểm cao = mô tả phù hợp nhất với tổ chức. Hệ thống sẽ tự tính tỷ lệ %.
           </p>
         </div>
 
@@ -300,6 +310,10 @@ export default function TakeSurveyPage() {
           {question.options.map((option) => {
             const currentKey = `score${option.key}_current` as keyof DimensionAnswer;
             const preferredKey = `score${option.key}_preferred` as keyof DimensionAnswer;
+            const currentPcts = getPercentages(currentQuestion, 'current');
+            const preferredPcts = getPercentages(currentQuestion, 'preferred');
+            const pctKeyCurrent = `pct${option.key}` as keyof typeof currentPcts;
+            const pctKeyPreferred = `pct${option.key}` as keyof typeof preferredPcts;
             
             return (
               <div key={option.key} className={`option-row culture-${option.cultureType.toLowerCase()}`}>
@@ -311,40 +325,52 @@ export default function TakeSurveyPage() {
                   </div>
                 </div>
                 <div className="option-inputs">
-                  <div className="score-input">
+                  <div className="score-input-group">
                     <input
                       type="number"
-                      min="0"
-                      max="100"
-                      value={currentAnswer[currentKey] as number}
-                      onChange={(e) => updateAnswer(currentQuestion, 'current', option.key, parseInt(e.target.value) || 0)}
+                      min="1"
+                      max="10"
+                      value={(currentAnswer[currentKey] as number) || ''}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        if (raw === '') { updateAnswer(currentQuestion, 'current', option.key, 0); return; }
+                        const val = parseInt(raw);
+                        if (!isNaN(val)) updateAnswer(currentQuestion, 'current', option.key, Math.min(10, Math.max(0, val)));
+                      }}
+                      onBlur={() => {
+                        const val = currentAnswer[currentKey] as number;
+                        if (val < 1) updateAnswer(currentQuestion, 'current', option.key, 1);
+                        else if (val > 10) updateAnswer(currentQuestion, 'current', option.key, 10);
+                      }}
                     />
+                    <span className="score-percentage">({currentPcts[pctKeyCurrent]}%)</span>
                   </div>
-                  <div className="score-input">
+                  <div className="score-input-group">
                     <input
                       type="number"
-                      min="0"
-                      max="100"
-                      value={currentAnswer[preferredKey] as number}
-                      onChange={(e) => updateAnswer(currentQuestion, 'preferred', option.key, parseInt(e.target.value) || 0)}
+                      min="1"
+                      max="10"
+                      value={(currentAnswer[preferredKey] as number) || ''}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        if (raw === '') { updateAnswer(currentQuestion, 'preferred', option.key, 0); return; }
+                        const val = parseInt(raw);
+                        if (!isNaN(val)) updateAnswer(currentQuestion, 'preferred', option.key, Math.min(10, Math.max(0, val)));
+                      }}
+                      onBlur={() => {
+                        const val = currentAnswer[preferredKey] as number;
+                        if (val < 1) updateAnswer(currentQuestion, 'preferred', option.key, 1);
+                        else if (val > 10) updateAnswer(currentQuestion, 'preferred', option.key, 10);
+                      }}
                     />
+                    <span className="score-percentage">({preferredPcts[pctKeyPreferred]}%)</span>
                   </div>
                 </div>
               </div>
             );
           })}
 
-          <div className="total-row">
-            <div className="total-label">Tổng điểm:</div>
-            <div className="total-values">
-              <span className={`total-value ${getCurrentTotal(currentQuestion, 'current') === 100 ? 'valid' : 'invalid'}`}>
-                {getCurrentTotal(currentQuestion, 'current')} / 100
-              </span>
-              <span className={`total-value ${getCurrentTotal(currentQuestion, 'preferred') === 100 ? 'valid' : 'invalid'}`}>
-                {getCurrentTotal(currentQuestion, 'preferred')} / 100
-              </span>
-            </div>
-          </div>
+
         </div>
 
         <div className="question-actions">

@@ -105,8 +105,8 @@ export function exportToExcel(survey: Survey, statistics: SurveyStatistics): voi
   const rawHeaders = [
     'ID', 'Phòng ban', 'Vị trí', 'Thâm niên', 'Giới tính', 'Độ tuổi', 'Ngày gửi',
     ...Array.from({ length: 6 }, (_, i) => [
-      `D${i + 1}_A_HT`, `D${i + 1}_B_HT`, `D${i + 1}_C_HT`, `D${i + 1}_D_HT`,
-      `D${i + 1}_A_MM`, `D${i + 1}_B_MM`, `D${i + 1}_C_MM`, `D${i + 1}_D_MM`
+      `D${i + 1}_A_HT(1-10)`, `D${i + 1}_B_HT(1-10)`, `D${i + 1}_C_HT(1-10)`, `D${i + 1}_D_HT(1-10)`,
+      `D${i + 1}_A_MM(1-10)`, `D${i + 1}_B_MM(1-10)`, `D${i + 1}_C_MM(1-10)`, `D${i + 1}_D_MM(1-10)`
     ]).flat()
   ];
 

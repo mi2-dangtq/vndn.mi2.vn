@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import type { ReactNode } from 'react';
 import type { Survey, SurveyResponse, DimensionAnswer, ParticipantInfo } from '../types';
 import { submitToGoogleSheet, fetchFromGoogleSheet } from '../utils/googleSheets';
+import { rawScoreToPercentages } from '../utils/calculations';
 
 interface SurveyContextType {
   survey: Survey;
@@ -93,9 +94,33 @@ export function SurveyProvider({ children }: { children: ReactNode }) {
     setError(null);
     
     try {
+      // Convert raw 1-10 scores to percentages for submission
+      // Reuse the same field names (scoreA_current, etc.) so Apps Script works unchanged
+      const answersAsPercent = response.answers.map(answer => {
+        const currentPct = rawScoreToPercentages(
+          answer.scoreA_current, answer.scoreB_current,
+          answer.scoreC_current, answer.scoreD_current
+        );
+        const preferredPct = rawScoreToPercentages(
+          answer.scoreA_preferred, answer.scoreB_preferred,
+          answer.scoreC_preferred, answer.scoreD_preferred
+        );
+        return {
+          dimensionNumber: answer.dimensionNumber,
+          scoreA_current: currentPct.pctA,
+          scoreB_current: currentPct.pctB,
+          scoreC_current: currentPct.pctC,
+          scoreD_current: currentPct.pctD,
+          scoreA_preferred: preferredPct.pctA,
+          scoreB_preferred: preferredPct.pctB,
+          scoreC_preferred: preferredPct.pctC,
+          scoreD_preferred: preferredPct.pctD,
+        };
+      });
+
       const result = await submitToGoogleSheet({
         participantInfo: response.participantInfo,
-        answers: response.answers
+        answers: answersAsPercent
       });
       
       if (result.success) {
