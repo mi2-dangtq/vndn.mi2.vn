@@ -276,6 +276,7 @@ export default function TakeSurveyPage() {
 
   const question = OCAI_QUESTIONS[currentQuestion];
   const currentAnswer = answers[currentQuestion];
+  const scoreButtons = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
   return (
     <div className="take-survey-page">
@@ -296,17 +297,11 @@ export default function TakeSurveyPage() {
         <div className="question-header">
           <h2>{question.dimensionNumber}. {question.dimensionName}</h2>
           <p className="question-hint">
-            Chấm điểm từ 1 đến 10 cho mỗi lựa chọn bên dưới. Điểm cao = mô tả phù hợp nhất với tổ chức. Hệ thống sẽ tự tính tỷ lệ %.
+            Click chọn điểm từ 1 → 10 cho mỗi lựa chọn. Điểm cao = phù hợp nhất. Hệ thống tự tính tỷ lệ %.
           </p>
         </div>
 
-        <div className="scoring-columns">
-          <div className="column-header">
-            <div className="column-label"></div>
-            <div className="column-label current">Hiện tại</div>
-            <div className="column-label preferred">Mong muốn</div>
-          </div>
-
+        <div className="scoring-cards">
           {question.options.map((option) => {
             const currentKey = `score${option.key}_current` as keyof DimensionAnswer;
             const preferredKey = `score${option.key}_preferred` as keyof DimensionAnswer;
@@ -314,9 +309,11 @@ export default function TakeSurveyPage() {
             const preferredPcts = getPercentages(currentQuestion, 'preferred');
             const pctKeyCurrent = `pct${option.key}` as keyof typeof currentPcts;
             const pctKeyPreferred = `pct${option.key}` as keyof typeof preferredPcts;
+            const currentVal = currentAnswer[currentKey] as number;
+            const preferredVal = currentAnswer[preferredKey] as number;
             
             return (
-              <div key={option.key} className={`option-row culture-${option.cultureType.toLowerCase()}`}>
+              <div key={option.key} className={`option-card culture-${option.cultureType.toLowerCase()}`}>
                 <div className="option-info">
                   <span className="option-key">{option.key}</span>
                   <div className="option-text">
@@ -324,53 +321,45 @@ export default function TakeSurveyPage() {
                     <p>{option.description}</p>
                   </div>
                 </div>
-                <div className="option-inputs">
-                  <div className="score-input-group">
-                    <input
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={(currentAnswer[currentKey] as number) || ''}
-                      onChange={(e) => {
-                        const raw = e.target.value;
-                        if (raw === '') { updateAnswer(currentQuestion, 'current', option.key, 0); return; }
-                        const val = parseInt(raw);
-                        if (!isNaN(val)) updateAnswer(currentQuestion, 'current', option.key, Math.min(10, Math.max(0, val)));
-                      }}
-                      onBlur={() => {
-                        const val = currentAnswer[currentKey] as number;
-                        if (val < 1) updateAnswer(currentQuestion, 'current', option.key, 1);
-                        else if (val > 10) updateAnswer(currentQuestion, 'current', option.key, 10);
-                      }}
-                    />
-                    <span className="score-percentage">({currentPcts[pctKeyCurrent]}%)</span>
+
+                <div className="score-selectors">
+                  <div className="score-selector-row">
+                    <span className="selector-label current">Hiện tại</span>
+                    <div className="score-buttons">
+                      {scoreButtons.map(num => (
+                        <button
+                          key={num}
+                          type="button"
+                          className={`score-btn${currentVal === num ? ' selected' : ''}`}
+                          onClick={() => updateAnswer(currentQuestion, 'current', option.key, num)}
+                        >
+                          {num}
+                        </button>
+                      ))}
+                    </div>
+                    <span className="score-pct">{currentPcts[pctKeyCurrent]}%</span>
                   </div>
-                  <div className="score-input-group">
-                    <input
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={(currentAnswer[preferredKey] as number) || ''}
-                      onChange={(e) => {
-                        const raw = e.target.value;
-                        if (raw === '') { updateAnswer(currentQuestion, 'preferred', option.key, 0); return; }
-                        const val = parseInt(raw);
-                        if (!isNaN(val)) updateAnswer(currentQuestion, 'preferred', option.key, Math.min(10, Math.max(0, val)));
-                      }}
-                      onBlur={() => {
-                        const val = currentAnswer[preferredKey] as number;
-                        if (val < 1) updateAnswer(currentQuestion, 'preferred', option.key, 1);
-                        else if (val > 10) updateAnswer(currentQuestion, 'preferred', option.key, 10);
-                      }}
-                    />
-                    <span className="score-percentage">({preferredPcts[pctKeyPreferred]}%)</span>
+
+                  <div className="score-selector-row">
+                    <span className="selector-label preferred">Mong muốn</span>
+                    <div className="score-buttons">
+                      {scoreButtons.map(num => (
+                        <button
+                          key={num}
+                          type="button"
+                          className={`score-btn${preferredVal === num ? ' selected' : ''}`}
+                          onClick={() => updateAnswer(currentQuestion, 'preferred', option.key, num)}
+                        >
+                          {num}
+                        </button>
+                      ))}
+                    </div>
+                    <span className="score-pct">{preferredPcts[pctKeyPreferred]}%</span>
                   </div>
                 </div>
               </div>
             );
           })}
-
-
         </div>
 
         <div className="question-actions">

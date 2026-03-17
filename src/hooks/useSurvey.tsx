@@ -125,11 +125,12 @@ export function SurveyProvider({ children }: { children: ReactNode }) {
       
       if (result.success) {
         // Add to local state immediately for UI feedback
+        // Use answersAsPercent (already converted) to match Google Sheets data
         const newResponse: SurveyResponse = {
           id: result.id || crypto.randomUUID(),
           surveyId: 'default-survey',
           participantInfo: response.participantInfo,
-          answers: response.answers,
+          answers: answersAsPercent,
           submittedAt: new Date()
         };
         

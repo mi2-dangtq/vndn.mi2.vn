@@ -36,7 +36,7 @@ export function rawScoreToPercentages(a: number, b: number, c: number, d: number
 }
 
 // Calculate average culture scores (as %) from an array of responses
-// Converts raw 1-10 scores to percentages first, then averages
+// Data is already stored as percentages in Google Sheets, so we just average directly
 export function calculateAverageScores(responses: SurveyResponse[], type: 'current' | 'preferred'): CultureScores {
   if (responses.length === 0) {
     return { clan: 0, adhocracy: 0, market: 0, hierarchy: 0 };
@@ -47,14 +47,17 @@ export function calculateAverageScores(responses: SurveyResponse[], type: 'curre
 
   responses.forEach(response => {
     response.answers.forEach(answer => {
-      const scores = type === 'current'
-        ? rawScoreToPercentages(answer.scoreA_current, answer.scoreB_current, answer.scoreC_current, answer.scoreD_current)
-        : rawScoreToPercentages(answer.scoreA_preferred, answer.scoreB_preferred, answer.scoreC_preferred, answer.scoreD_preferred);
-      
-      totals.clan += scores.pctA;
-      totals.adhocracy += scores.pctB;
-      totals.market += scores.pctC;
-      totals.hierarchy += scores.pctD;
+      if (type === 'current') {
+        totals.clan += answer.scoreA_current;
+        totals.adhocracy += answer.scoreB_current;
+        totals.market += answer.scoreC_current;
+        totals.hierarchy += answer.scoreD_current;
+      } else {
+        totals.clan += answer.scoreA_preferred;
+        totals.adhocracy += answer.scoreB_preferred;
+        totals.market += answer.scoreC_preferred;
+        totals.hierarchy += answer.scoreD_preferred;
+      }
       count++;
     });
   });
@@ -93,16 +96,15 @@ export function calculateDimensionResults(responses: SurveyResponse[]): Dimensio
 
     if (dimAnswers.length > 0) {
       dimAnswers.forEach(answer => {
-        const curPct = rawScoreToPercentages(answer.scoreA_current, answer.scoreB_current, answer.scoreC_current, answer.scoreD_current);
-        const prefPct = rawScoreToPercentages(answer.scoreA_preferred, answer.scoreB_preferred, answer.scoreC_preferred, answer.scoreD_preferred);
-        current.clan += curPct.pctA;
-        current.adhocracy += curPct.pctB;
-        current.market += curPct.pctC;
-        current.hierarchy += curPct.pctD;
-        preferred.clan += prefPct.pctA;
-        preferred.adhocracy += prefPct.pctB;
-        preferred.market += prefPct.pctC;
-        preferred.hierarchy += prefPct.pctD;
+        // Data is already stored as percentages — use directly
+        current.clan += answer.scoreA_current;
+        current.adhocracy += answer.scoreB_current;
+        current.market += answer.scoreC_current;
+        current.hierarchy += answer.scoreD_current;
+        preferred.clan += answer.scoreA_preferred;
+        preferred.adhocracy += answer.scoreB_preferred;
+        preferred.market += answer.scoreC_preferred;
+        preferred.hierarchy += answer.scoreD_preferred;
       });
 
       const count = dimAnswers.length;
